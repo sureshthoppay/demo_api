@@ -1,0 +1,51 @@
+---
+# tasks file for api_demo
+- name: ONTAP operations for {{ ontap_cluster_hostname }}
+  ansible.builtin.include_tasks:
+    file: ontap.yml
+  tags:
+    - create_svm
+    - never
+
+- name: Authenticate to vCenter - {{ vcenter_host }}
+  ansible.builtin.include_tasks:
+    file: auth.yml
+  tags:
+    - create_datastore
+    - datastore_protection
+    - vm_protection
+    - never
+
+
+- name: Get vCenter GUID of {{ vcenter_host }}
+  ansible.builtin.include_tasks:
+    file: vcenter.yml
+  tags:
+    - create_datastore
+    - never
+
+- name: Datastore operations for {{ datastore_name }}
+  ansible.builtin.include_tasks:
+    file: datastore.yml
+  tags:
+    - create_datastore
+    - datastore_protection
+    - vm_protection
+    - never
+
+- name: Job operations for {{ job_id }}
+  ansible.builtin.include_tasks:
+    file: job.yml
+  when:
+    - job_id is defined
+  tags:
+    - create_datastore
+    - never
+
+
+- name: VM operations for {{ vm_name }}
+  ansible.builtin.include_tasks:
+    file: vm.yml
+  tags:
+    - vm_protection
+    - never

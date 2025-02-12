@@ -1,0 +1,31 @@
+# - name: Create SVM with root volume
+#   netapp.ontap.na_ontap_svm:
+#     state: present
+#     name: "{{ svm_name }}"
+#     root_volume: "{{ svm_name }}_root"
+#     root_volume_aggregate: "{{ node1_aggregate }}"
+#     hostname: "{{ ontap_cluster_hostname }}"
+#     username: "{{ ontap_cluster_username }}"
+#     password: "{{ ontap_cluster_password }}"
+#     https: true
+#     validate_certs: false
+#   tags:
+#     - create_svm
+
+
+- name: Create SVM with FC enabled
+  netapp.ontap.na_ontap_svm:
+    state: present
+    name: "{{ svm_name }}"
+    services:
+      fcp:
+        allowed: true
+        enabled: true
+    hostname: "{{ ontap_cluster_hostname }}"
+    username: "{{ ontap_cluster_username }}"
+    password: "{{ ontap_cluster_password }}"
+    use_rest: always
+    https: true
+    validate_certs: false
+  tags:
+    - create_svm

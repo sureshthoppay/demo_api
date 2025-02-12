@@ -1,0 +1,75 @@
+---
+
+- name: Get vSphere VM Info - "{{ vm_name }}"
+  uri:
+    url: "https://{{ vcenter_host }}/api/vcenter/vm?names={{ vm_name }}" 
+    validate_certs: false
+    method: GET
+    return_content: yes
+    body_format: json
+    headers:
+      vmware-api-session-id: "{{ vcapilogin.json.value }}"
+  when: vm_name != ''
+  register: vcvmid
+  tags:
+    - vm_protection
+
+- name: Get SCV Resource Groups
+  ansible.builtin.uri:
+    url: "https://{{ scv_api_base }}/resource-groups"
+    validate_certs: false
+    method: GET
+    status_code: [200]
+    headers:
+      Token: "{{ scv_token }}"
+    return_content: yes
+  register: scv_rg
+  when:
+    - scv_token is defined
+  tags:
+    - vm_protection
+
+- name: Save Resource Group ID as fact
+  ansible.builtin.set_fact: 
+    scv_rg_id: "{{ scv_rg.json.response | json_query(scvrgnamequery) }}"
+  vars:
+    scvrgnamequery: "resourceGroupResponseList[?name == '{{ scv_resource_group_name }}'].id| [0]"
+  when: scv_rg is defined
+  tags:
+    - vm_protection
+
+- name: Create Resource Group - "{{ scv_resource_group_name }}"
+  ansible.builtin.uri:
+    url: "https://{{ scv_api_base }}/resource-groups"
+    validate_certs: false
+    method: POST
+    status_code: [200]
+    body_format: json
+    body:
+      name: "{{ scv_resource_group_name }}"
+      customSnapshotFormat: "{{ scv_resource_group_custom_snapshot_format }}"
+      customSnapshotText: "{{ scv_resource_group_custom_snapshot_text }}"
+      description: "{{ scv_resource_group_description }}"
+      enableRecentSnapshotNaming: "{{ scv_resource_group_enable_recent_snapshot_naming }}"
+      entities:
+        - "{{ vcvmid.json[0].vm }}"
+      isCustomSnapshot: "{{ scv_resource_group_is_custom_snapshot }}"
+      maintenanceStatus: "{{ scv_resource_group_maintenance_status }}"
+      notification: "{{ scv_resource_group_notification }}"
+      policies:
+        - id: "{{ scv_policy_id }}"
+          name: "{{ scv_policy_name }}"
+          scheduleType: "{{ scv_policy_frequency }}"
+      spanningDatastores:
+        spanningType: "INCLUDE_ALL"
+    headers:
+      Token: "{{ scv_token }}"
+    return_content: yes
+  register: scv_rg_creation
+  changed_when: scv_rg_creation.status == 200
+  when:
+    - scv_token is defined
+    - scv_rg_id == ''
+    - vcvmid.json[0].vm != '' 
+  tags:
+    - vm_protection

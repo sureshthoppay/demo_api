@@ -1,0 +1,101 @@
+---
+
+- name: Generate a Token for ONTAP Tools
+  ansible.builtin.uri:
+    url: "https://{{ ontap_tools_api_host }}/virtualization/api/v1/auth/login"
+    validate_certs: false
+    method: POST
+    body:
+      username: "{{ ontap_tools_admin_user }}"
+      password: "{{ ontap_tools_admin_password }}"
+    body_format: 'json'
+    force_basic_auth: yes
+    return_content: yes
+  register: otvlogin
+  tags:
+    - create_datastore
+
+- name: Store Token
+  ansible.builtin.set_fact: 
+    otv_token: "{{ otvlogin.json['access-token'] }}"
+  tags:
+    - create_datastore
+
+- name: Generate a Token for vCenter
+  ansible.builtin.uri:
+    url: "https://{{ ontap_tools_api_host }}/virtualization/api/v1/auth/vcenter-login"
+    validate_certs: false
+    method: POST
+    body:
+      username: "{{ vcenter_username }}"
+      password: "{{ vcenter_password }}"
+      vcenter-hostname: "{{ vcenter_host }}"
+    body_format: 'json'
+    force_basic_auth: yes
+    return_content: yes
+  register: vclogin
+  tags:
+    - initial_setup
+    - register_vcenter
+    - register_svm
+    - register_vasa
+    - create_vvol_ds
+    - delete_vvol_ds
+    - expand_vvol_ds
+    - shrink_vvol_ds
+    - vm_info
+    - create_datastore
+
+
+- name: Store Token
+  ansible.builtin.set_fact: 
+    jwt_token: "{{ vclogin.json['jwt-token'] }}"
+  tags:
+    - initial_setup
+    - register_vcenter
+    - register_svm
+    - register_vasa
+    - create_vvol_ds
+    - delete_vvol_ds
+    - expand_vvol_ds
+    - shrink_vvol_ds
+    - vm_info
+    - create_datastore
+
+- name: Generate a Session ID for vCenter
+  uri:
+    url: "https://{{ vcenter_host }}/rest/com/vmware/cis/session"
+    validate_certs: false
+    method: POST
+    user: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    force_basic_auth: yes
+    return_content: yes
+  register: vcapilogin
+  tags:
+    - datastore_protection
+    - vm_protection
+
+
+- name: Generate a Token for SnapCenter Plug-in for VMware vSphere
+  ansible.builtin.uri:
+    url: "https://{{ scv_api_base }}/auth/login"
+    validate_certs: false
+    method: POST
+    body:
+      username: "{{ vcenter_username }}"
+      password: "{{ vcenter_password }}"
+    body_format: 'json'
+    force_basic_auth: yes
+    return_content: yes
+  register: scvlogin
+  tags:
+    - datastore_protection
+    - vm_protection
+
+- name: Store SCV Token
+  ansible.builtin.set_fact: 
+    scv_token: "{{ scvlogin.json.response['token'] }}"
+  tags:
+    - datastore_protection
+    - vm_protection

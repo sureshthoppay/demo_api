@@ -1,0 +1,51 @@
+---
+# vars file for api_demo
+
+ontap_cluster_hostname: '10.61.180.100'
+ontap_cluster_username: 'admin'
+ontap_cluster_password: '{{ lookup("ansible.builtin.env", "ONTAP_PASSWORD") }}'
+
+svm_name: 'Demo'
+node1_aggregate: 'HCG_NetApp_A400_e4u1a_NVME_SSD_1'
+
+vcenter_host: 'r01vc01.sddc.netapp.com'
+vcenter_username: 'administrator@vsphere.local'
+vcenter_password: '{{ lookup("ansible.builtin.env", "VCENTER_PASSWORD") }}'
+
+
+datacenter_name: 'RTP'
+cluster_name: 'Cluster02'
+datastore_name: 'R01CL02DS05'
+datastore_svm: 'vcf_az1'
+svm_id: 'fade8f7d-9d72-11ef-9554-d039eaae87c5'
+aggregate_id: '0a0b3c24-06c2-4be4-9280-ff8035645278'
+
+vm_name: 'R01Mediator'
+
+ontap_tools_api_host: 'R01OTV.sddc.netapp.com:8443'  
+ontap_tools_admin_user: 'admin'
+ontap_tools_admin_password: '{{ lookup("ansible.builtin.env", "ONTAP_TOOLS_PASSWORD") }}'
+
+
+scv_api_base: 'r01scv.sddc.netapp.com:8144/api/4.1'
+scv_policy_name: 'Demo'
+scv_policy_snapshot_retention_period: 0
+# scv_policy_snapshot_retention_period_type: 0
+scv_policy_include_independent_disks: false
+scv_policy_frequency: 'Daily'
+scv_policy_retention_days: 7
+scv_policy_description: 'Demo policy creation with Ansible'
+scv_policy_updatesnapmirror: false
+scv_policy_updatesnapvault: false
+scv_policy_vmconsistent: false
+scv_policy_snapshot_label: ''
+scv_policy_scripts: ['']
+
+scv_resource_group_name: 'R01CL02DS05'
+scv_resource_group_custom_snapshot_format: '$ResourceGroup'
+scv_resource_group_custom_snapshot_text: ''
+scv_resource_group_description: 'Created with Ansible'
+scv_resource_group_enable_recent_snapshot_naming: false
+scv_resource_group_is_custom_snapshot: true
+scv_resource_group_maintenance_status: 'production'
+scv_resource_group_notification: 'never'

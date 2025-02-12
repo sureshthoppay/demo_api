@@ -1,0 +1,208 @@
+---
+
+
+- name: Gather info for {{ cluster_name }}
+  community.vmware.vmware_cluster_info:
+    hostname: '{{ vcenter_host }}'
+    username: '{{ vcenter_username }}'
+    password: '{{ vcenter_password }}'
+    # datacenter: '{{ datacenter_name }}'
+    cluster_name: "{{ cluster_name }}"
+    validate_certs: false
+    # schema: "vsphere"
+  register: cluster_info
+  tags:
+    - cluster_info
+    - create_vvol_ds
+    - create_datastore
+
+- name: Save Cluster MOID as fact
+  ansible.builtin.set_fact: 
+    cluster_moref: "{{ cluster_info.clusters[cluster_name].moid }}"
+  when: cluster_info is defined
+  tags:
+    - cluster_info
+    - create_vvol_ds
+    - create_datastore
+
+- name: Create Datastore - {{ datastore_name }}
+  ansible.builtin.uri:
+    url: "https://{{ ontap_tools_api_host }}/virtualization/api/v1/vcenters/{{ vc_guid }}/traditional/datastores"
+    validate_certs: false
+    method: POST
+    status_code: [202]
+    body_format: json
+    body:
+      name: "{{ datastore_name }}"
+      type: "vmfs"
+      target_morefs:
+        - "{{ cluster_moref }}"
+      svm_id: "{{ svm_id }}"
+      aggregate_id: "{{ aggregate_id }}"
+      protocol: "fcp"
+      platform_type: "performance"
+      space:
+        total_in_bytes: 1731677126656
+      space_efficiency: "thin"
+    headers:
+      x-auth: "{{ jwt_token }}"
+    return_content: yes
+  register: create_ds_job_id
+  when:
+    - vc_guid is defined
+  tags:
+    - create_datastore
+
+- name: Save create datastore Job ID as fact
+  ansible.builtin.set_fact: 
+    job_id: "{{ create_ds_job_id.json.id }}"
+  when: create_ds_job_id is defined
+  tags:
+    - create_datastore
+
+
+- name: Get vSphere Datastore Info - "{{ datastore_name }}"
+  uri:
+    url: "https://{{ vcenter_host }}/api/vcenter/datastore?names={{ datastore_name }}" 
+    validate_certs: false
+    method: GET
+    return_content: yes
+    body_format: json
+    headers:
+      vmware-api-session-id: "{{ vcapilogin.json.value }}"
+  when: datastore_name != ''
+  register: vcdatastoreid
+  tags:
+    - datastore_protection
+
+- name: Get SCV Policies
+  ansible.builtin.uri:
+    url: "https://{{ scv_api_base }}/policies"
+    validate_certs: false
+    method: GET
+    status_code: [200]
+    headers:
+      Token: "{{ scv_token }}"
+    return_content: yes
+  register: scv_policies
+  when:
+    - scv_token is defined
+  tags:
+    - datastore_protection
+    - vm_protection
+
+- name: Save policy ID as fact
+  ansible.builtin.set_fact: 
+    scv_policy_id: "{{ scv_policies.json.response | json_query(scvpnamequery) }}"
+  vars:
+    scvpnamequery: "policyResponseList[?name == '{{ scv_policy_name }}'].id| [0]"
+  when: scv_policies is defined
+  tags:
+    - datastore_protection
+    - vm_protection
+
+- name: Create SCV Policy - "{{ scv_policy_name }}"
+  ansible.builtin.uri:
+    url: "https://{{ scv_api_base }}/policies"
+    validate_certs: false
+    method: POST
+    status_code: [200]
+    body_format: json
+    body:
+      SnapLockRetentionPeriod: "{{ scv_policy_snapshot_retention_period }}"
+      # SnapLockRetentionPeriodType: "{{ scv_policy_snapshot_retention_period_type }}"
+      name: "{{ scv_policy_name }}"
+      frequency: "{{ scv_policy_frequency }}"
+      retention:
+        type: "DAYS_TO_KEEP"
+        value: "{{ scv_policy_retention_days }}"
+      description: "{{ scv_policy_description }}"
+      includeIndependentDisks: "{{ scv_policy_include_independent_disks }}"
+      updateSnapmirror: "{{ scv_policy_updatesnapmirror }}"
+      updateSnapvault: "{{ scv_policy_updatesnapvault }}"
+      vmConsistent: "{{ scv_policy_vmconsistent }}"
+      snapshotLabel: "{{ scv_policy_snapshot_label }}"
+      scripts: "{{ scv_policy_scripts }}"
+    headers:
+      Token: "{{ scv_token }}"
+    return_content: yes
+  register: scv_policy
+  changed_when: scv_policy.status == 200
+  when:
+    - scv_token is defined
+    - scv_policy_id == ''
+  tags:
+    - datastore_protection
+    - vm_protection
+
+- name: Save policy ID as fact
+  ansible.builtin.set_fact: 
+    scv_policy_id: "{{ scv_policy.json.response | json_query(scvpnamequery) }}"
+  vars:
+    scvpnamequery: "policyResponseList[?name == '{{ scv_policy_name }}'].id| [0]"
+  when: scv_policy is defined
+  tags:
+    - datastore_protection
+    - vm_protection
+
+- name: Get SCV Resource Groups
+  ansible.builtin.uri:
+    url: "https://{{ scv_api_base }}/resource-groups"
+    validate_certs: false
+    method: GET
+    status_code: [200]
+    headers:
+      Token: "{{ scv_token }}"
+    return_content: yes
+  register: scv_rg
+  when:
+    - scv_token is defined
+  tags:
+    - datastore_protection
+
+
+- name: Save Resource Group ID as fact
+  ansible.builtin.set_fact: 
+    scv_rg_id: "{{ scv_rg.json.response | json_query(scvrgnamequery) }}"
+  vars:
+    scvrgnamequery: "resourceGroupResponseList[?name == '{{ scv_resource_group_name }}'].id| [0]"
+  when: scv_rg is defined
+  tags:
+    - datastore_protection
+
+
+- name: Create Resource Group - "{{ scv_resource_group_name }}"
+  ansible.builtin.uri:
+    url: "https://{{ scv_api_base }}/resource-groups"
+    validate_certs: false
+    method: POST
+    status_code: [200]
+    body_format: json
+    body:
+      name: "{{ scv_resource_group_name }}"
+      customSnapshotFormat: "{{ scv_resource_group_custom_snapshot_format }}"
+      customSnapshotText: "{{ scv_resource_group_custom_snapshot_text }}"
+      description: "{{ scv_resource_group_description }}"
+      enableRecentSnapshotNaming: "{{ scv_resource_group_enable_recent_snapshot_naming }}"
+      entities:
+        - "{{ vcdatastoreid.json[0].datastore }}"
+      isCustomSnapshot: "{{ scv_resource_group_is_custom_snapshot }}"
+      maintenanceStatus: "{{ scv_resource_group_maintenance_status }}"
+      notification: "{{ scv_resource_group_notification }}"
+      policies:
+        - id: "{{ scv_policy_id }}"
+          name: "{{ scv_policy_name }}"
+          scheduleType: "{{ scv_policy_frequency }}"
+      spanningDatastores:
+        spanningType: "INCLUDE_ALL"
+    headers:
+      Token: "{{ scv_token }}"
+    return_content: yes
+  register: scv_rg_creation
+  changed_when: scv_rg_creation.status == 200
+  when:
+    - scv_token is defined
+    - scv_rg_id == ''
+    - vcdatastoreid.json[0].datastore != '' 
+  tags:
+    - datastore_protection

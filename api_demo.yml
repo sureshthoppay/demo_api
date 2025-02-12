@@ -1,0 +1,10 @@
+---
+- name: Demo with ONTAP APIs for VMware vSphere
+  hosts: localhost
+  gather_facts: false
+  connection: local
+  roles:
+    - role: api_demo
+      # tags:
+      #  - create_svm
+
