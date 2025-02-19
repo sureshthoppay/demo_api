@@ -45,6 +45,7 @@
     - shrink_vvol_ds
     - vm_info
     - create_datastore
+    - list_datastore_backups
 
 
 - name: Store Token
@@ -61,6 +62,7 @@
     - shrink_vvol_ds
     - vm_info
     - create_datastore
+    - list_datastore_backups
 
 - name: Generate a Session ID for vCenter
   uri:
@@ -75,6 +77,7 @@
   tags:
     - datastore_protection
     - vm_protection
+    - list_datastore_backups
 
 
 - name: Generate a Token for SnapCenter Plug-in for VMware vSphere
@@ -93,6 +96,7 @@
     - datastore_protection
     - vm_protection
     - configure_scv
+    - list_datastore_backups
 
 - name: Store SCV Token
   ansible.builtin.set_fact: 
@@ -101,3 +105,4 @@
     - datastore_protection
     - vm_protection
     - configure_scv
+    - list_datastore_backups

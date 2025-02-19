@@ -73,3 +73,22 @@
     - vcvmid.json[0].vm != '' 
   tags:
     - vm_protection
+
+
+- name: Get VM Backups
+  ansible.builtin.uri:
+    url: "https://{{ scv_api_base }}/vm/{{ vcvmid.json[0].vm }}/backups"
+    validate_certs: false
+    method: GET
+    status_code: [200]
+    headers:
+      Accept: "application/json" 
+      Token: "{{ scv_token }}"
+    return_content: yes
+  register: scv_vm_backups
+  when:
+    - scv_token is defined
+  tags:
+    - vm_protection
+    - list_vm_backups
+    - vcvmid.json[0].vm != '' 

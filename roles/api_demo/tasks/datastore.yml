@@ -74,6 +74,7 @@
   register: vcdatastoreid
   tags:
     - datastore_protection
+    - list_datastore_backups
 
 - name: Get SCV Policies
   ansible.builtin.uri:
@@ -222,3 +223,21 @@
     - vcdatastoreid.json[0].datastore != '' 
   tags:
     - datastore_protection
+
+
+- name: Get Datastore Backups
+  ansible.builtin.uri:
+    url: "https://{{ scv_api_base }}/datastores/{{ vcdatastoreid.json[0].datastore }}/backups"
+    validate_certs: false
+    method: GET
+    status_code: [200]
+    headers:
+      Accept: "application/json" 
+      Token: "{{ scv_token }}"
+    return_content: yes
+  register: scv_datastore_backups
+  when:
+    - scv_token is defined
+    - vcdatastoreid.json[0].datastore != '' 
+  tags:
+    - list_datastore_backups

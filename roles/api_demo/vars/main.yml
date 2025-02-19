@@ -1,7 +1,7 @@
 ---
 # vars file for api_demo
 
-ontap_cluster_hostname: '172.16.9.25'
+ontap_cluster_hostname: '10.61.180.100'
 ontap_cluster_username: 'admin'
 ontap_cluster_password: '{{ lookup("ansible.builtin.env", "ONTAP_PASSWORD") }}'
 ontap_platformtype: 'AFF'
@@ -21,7 +21,7 @@ datastore_svm: 'vcf_az1'
 svm_id: 'fade8f7d-9d72-11ef-9554-d039eaae87c5'
 aggregate_id: '0a0b3c24-06c2-4be4-9280-ff8035645278'
 
-vm_name: 'R01Mediator'
+vm_name: 'R01VC01'
 
 ontap_tools_api_host: 'R01OTV.sddc.netapp.com:8443'  
 ontap_tools_admin_user: 'admin'

@@ -15,6 +15,7 @@
     - datastore_protection
     - vm_protection
     - configure_scv
+    - list_datastore_backups
     - never
 
 
@@ -39,6 +40,7 @@
     - create_datastore
     - datastore_protection
     - vm_protection
+    - list_datastore_backups
     - never
 
 - name: Job operations for {{ job_id }}

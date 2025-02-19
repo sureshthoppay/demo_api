@@ -48,6 +48,7 @@
       Token: "{{ scv_token }}"
     return_content: yes
   register: scv_registration
+  changed_when: scv_registration.status == 200
   when:
     - scv_token is defined
     - scv_backend_name == ''
