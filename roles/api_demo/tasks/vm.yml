@@ -13,6 +13,7 @@
   register: vcvmid
   tags:
     - vm_protection
+    - list_vm_backups
 
 - name: Get SCV Resource Groups
   ansible.builtin.uri:
@@ -92,3 +93,35 @@
     - vm_protection
     - list_vm_backups
     - vcvmid.json[0].vm != '' 
+
+- name: Report Protected VMs 
+  ansible.builtin.uri:
+    url: "https://{{ scv_api_base }}/reports/protectedVM"
+    validate_certs: false
+    method: GET
+    status_code: [200]
+    headers:
+      Accept: "application/json" 
+      Token: "{{ scv_token }}"
+    return_content: yes
+  register: scv_rpt_protected_vms
+  when:
+    - scv_token is defined
+  tags:
+    - report_protected_vms
+
+- name: Report Unprotected VMs 
+  ansible.builtin.uri:
+    url: "https://{{ scv_api_base }}/reports/unProtectedVM"
+    validate_certs: false
+    method: GET
+    status_code: [200]
+    headers:
+      Accept: "application/json" 
+      Token: "{{ scv_token }}"
+    return_content: yes
+  register: scv_rpt_unprotected_vms
+  when:
+    - scv_token is defined
+  tags:
+    - report_unprotected_vms

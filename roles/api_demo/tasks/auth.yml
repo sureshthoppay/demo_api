@@ -46,6 +46,11 @@
     - vm_info
     - create_datastore
     - list_datastore_backups
+    - list_vm_backups
+    - report_protected_datastores
+    - report_unprotected_datastores
+    - report_protected_vms
+    - report_unprotected_vms
 
 
 - name: Store Token
@@ -63,6 +68,11 @@
     - vm_info
     - create_datastore
     - list_datastore_backups
+    - list_vm_backups
+    - report_protected_datastores
+    - report_unprotected_datastores
+    - report_protected_vms
+    - report_unprotected_vms
 
 - name: Generate a Session ID for vCenter
   uri:
@@ -78,6 +88,11 @@
     - datastore_protection
     - vm_protection
     - list_datastore_backups
+    - list_vm_backups
+    - report_protected_datastores
+    - report_unprotected_datastores
+    - report_protected_vms
+    - report_unprotected_vms
 
 
 - name: Generate a Token for SnapCenter Plug-in for VMware vSphere
@@ -97,6 +112,11 @@
     - vm_protection
     - configure_scv
     - list_datastore_backups
+    - list_vm_backups
+    - report_protected_datastores
+    - report_unprotected_datastores
+    - report_protected_vms
+    - report_unprotected_vms
 
 - name: Store SCV Token
   ansible.builtin.set_fact: 
@@ -106,3 +126,8 @@
     - vm_protection
     - configure_scv
     - list_datastore_backups
+    - list_vm_backups
+    - report_protected_datastores
+    - report_unprotected_datastores
+    - report_protected_vms
+    - report_unprotected_vms

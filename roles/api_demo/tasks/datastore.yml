@@ -241,3 +241,35 @@
     - vcdatastoreid.json[0].datastore != '' 
   tags:
     - list_datastore_backups
+
+- name: Report Protected Datastores 
+  ansible.builtin.uri:
+    url: "https://{{ scv_api_base }}/reports/protectedDS"
+    validate_certs: false
+    method: GET
+    status_code: [200]
+    headers:
+      Accept: "application/json" 
+      Token: "{{ scv_token }}"
+    return_content: yes
+  register: scv_rpt_protected_datastores
+  when:
+    - scv_token is defined
+  tags:
+    - report_protected_datastores
+
+- name: Report Unprotected VMs 
+  ansible.builtin.uri:
+    url: "https://{{ scv_api_base }}/reports/unProtectedDS"
+    validate_certs: false
+    method: GET
+    status_code: [200]
+    headers:
+      Accept: "application/json" 
+      Token: "{{ scv_token }}"
+    return_content: yes
+  register: scv_rpt_unprotected_datastores
+  when:
+    - scv_token is defined
+  tags:
+    - report_unprotected_datastores

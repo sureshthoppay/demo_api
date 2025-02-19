@@ -16,6 +16,11 @@
     - vm_protection
     - configure_scv
     - list_datastore_backups
+    - list_vm_backups
+    - report_protected_datastores
+    - report_unprotected_datastores
+    - report_protected_vms
+    - report_unprotected_vms
     - never
 
 
@@ -41,6 +46,8 @@
     - datastore_protection
     - vm_protection
     - list_datastore_backups
+    - report_protected_datastores
+    - report_unprotected_datastores
     - never
 
 - name: Job operations for {{ job_id }}
@@ -58,4 +65,7 @@
     file: vm.yml
   tags:
     - vm_protection
+    - list_vm_backups
+    - report_protected_vms
+    - report_unprotected_vms
     - never
