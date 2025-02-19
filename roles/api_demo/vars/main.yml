@@ -1,9 +1,10 @@
 ---
 # vars file for api_demo
 
-ontap_cluster_hostname: '10.61.180.100'
+ontap_cluster_hostname: '172.16.9.25'
 ontap_cluster_username: 'admin'
 ontap_cluster_password: '{{ lookup("ansible.builtin.env", "ONTAP_PASSWORD") }}'
+ontap_platformtype: 'AFF'
 
 svm_name: 'Demo'
 node1_aggregate: 'HCG_NetApp_A400_e4u1a_NVME_SSD_1'

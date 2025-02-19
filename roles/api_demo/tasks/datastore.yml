@@ -135,12 +135,28 @@
     - datastore_protection
     - vm_protection
 
+- name: Get SCV Policies
+  ansible.builtin.uri:
+    url: "https://{{ scv_api_base }}/policies"
+    validate_certs: false
+    method: GET
+    status_code: [200]
+    headers:
+      Token: "{{ scv_token }}"
+    return_content: yes
+  register: scv_policies
+  when:
+    - scv_token is defined
+  tags:
+    - datastore_protection
+    - vm_protection
+
 - name: Save policy ID as fact
   ansible.builtin.set_fact: 
-    scv_policy_id: "{{ scv_policy.json.response | json_query(scvpnamequery) }}"
+    scv_policy_id: "{{ scv_policies.json.response | json_query(scvpnamequery) }}"
   vars:
     scvpnamequery: "policyResponseList[?name == '{{ scv_policy_name }}'].id| [0]"
-  when: scv_policy is defined
+  when: scv_policies is defined
   tags:
     - datastore_protection
     - vm_protection

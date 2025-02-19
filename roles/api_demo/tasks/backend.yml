@@ -1,0 +1,55 @@
+---
+- name: Get registered storage backends
+  ansible.builtin.uri:
+    url: "https://{{ scv_api_base }}/storage-system"
+    validate_certs: false
+    method: GET
+    status_code: [200]
+    headers:
+      Token: "{{ scv_token }}"
+    return_content: yes
+  register: scv_backends
+  when:
+    - scv_token is defined
+  tags:
+    - configure_scv
+
+
+- name: Save storage backend as fact
+  ansible.builtin.set_fact: 
+    scv_backend_name: "{{ scv_backends.json.response | json_query(scvbackendquery) }}"
+  vars:
+    scvbackendquery: "storageVirtualMachineList[?name == '{{ ontap_cluster_hostname }}'].name| [0]"
+  when: scv_backends is defined
+  tags:
+    - configure_scv
+
+- name: Register storage backend
+  ansible.builtin.uri:
+    url: "https://{{ scv_api_base }}/storage-system"
+    validate_certs: false
+    method: POST
+    status_code: [200]
+    body_format: json
+    body:
+      name: "{{ ontap_cluster_hostname }}"
+      port: 443
+      userName: "{{ ontap_cluster_username }}"
+      password: "{{ ontap_cluster_password }}"
+      protocol: "HTTPS"
+      timeout: 300
+      asup: true
+      platformType: "{{ ontap_platformtype }}"
+      type: "ONTAP Cluster"
+      syslog: false
+      preferredIp: ""
+    headers:
+      Accept: "application/json" 
+      Token: "{{ scv_token }}"
+    return_content: yes
+  register: scv_registration
+  when:
+    - scv_token is defined
+    - scv_backend_name == ''
+  tags:
+    - configure_scv

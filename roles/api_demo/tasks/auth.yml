@@ -92,6 +92,7 @@
   tags:
     - datastore_protection
     - vm_protection
+    - configure_scv
 
 - name: Store SCV Token
   ansible.builtin.set_fact: 
@@ -99,3 +100,4 @@
   tags:
     - datastore_protection
     - vm_protection
+    - configure_scv

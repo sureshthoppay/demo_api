@@ -14,8 +14,16 @@
     - create_datastore
     - datastore_protection
     - vm_protection
+    - configure_scv
     - never
 
+
+- name: Configure SCV - {{ vcenter_host }}
+  ansible.builtin.include_tasks:
+    file: backend.yml
+  tags:
+    - configure_scv
+    - never
 
 - name: Get vCenter GUID of {{ vcenter_host }}
   ansible.builtin.include_tasks:
