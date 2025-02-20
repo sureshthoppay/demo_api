@@ -131,3 +131,27 @@
     - report_unprotected_datastores
     - report_protected_vms
     - report_unprotected_vms
+
+- name: Report SCV Version 
+  ansible.builtin.uri:
+    url: "https://{{ scv_api_base }}/version/scv"
+    validate_certs: false
+    method: GET
+    status_code: [200]
+    headers:
+      Accept: "application/json" 
+      Token: "{{ scv_token }}"
+    return_content: yes
+  register: scv_version
+  when:
+    - scv_token is defined
+  tags:
+    - datastore_protection
+    - vm_protection
+    - configure_scv
+    - list_datastore_backups
+    - list_vm_backups
+    - report_protected_datastores
+    - report_unprotected_datastores
+    - report_protected_vms
+    - report_unprotected_vms
